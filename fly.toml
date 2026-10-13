@@ -1,0 +1,36 @@
+# One small machine that sleeps while nobody uses the demo. Fly never adds a
+# second one by itself: auto start only wakes the machines that exist, and the
+# workflow deploys with --ha=false so there is only ever one.
+app = "pingvin-share-x-demo"
+primary_region = "waw"
+
+# the demo needs about 220 MB, swap covers a busy minute
+swap_size_mb = 512
+
+[env]
+  APP_URL = "https://pingvin-share-x-demo.fly.dev"
+  RESET_MINUTES = "10"
+  TRUST_PROXY = "true"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 50
+    hard_limit = 100
+
+  [[http_service.checks]]
+    grace_period = "30s"
+    interval = "30s"
+    timeout = "5s"
+    method = "GET"
+    path = "/api/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

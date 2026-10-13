@@ -1,0 +1,70 @@
+name: Build and deploy the demo
+
+# Builds the app from the demo branch of dzaczek/pingvin-share-x as the base
+# image, puts the demo on top and deploys it to Fly.io as a single machine.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or tag of dzaczek/pingvin-share-x to build
+        default: demo
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      BASE: ghcr.io/${{ github.repository_owner }}/pingvin-share-x-demo-base:latest
+      IMAGE: registry.fly.io/pingvin-share-x-demo:${{ github.sha }}
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build the app
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: https://github.com/dzaczek/pingvin-share-x.git#${{ inputs.ref || 'demo' }}
+          push: true
+          tags: ${{ env.BASE }}
+
+      # without a token there is nowhere to deploy, the app image is still built
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        if: env.FLY_API_TOKEN != ''
+        with:
+          registry: registry.fly.io
+          username: x
+          password: ${{ secrets.FLY_API_TOKEN }}
+
+      - name: Build the demo
+        if: env.FLY_API_TOKEN != ''
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          build-args: BASE_IMAGE=${{ env.BASE }}
+          push: true
+          tags: ${{ env.IMAGE }}
+
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # master
+        if: env.FLY_API_TOKEN != ''
+
+      - name: Deploy
+        if: env.FLY_API_TOKEN != ''
+        run: flyctl deploy --image "$IMAGE" --ha=false

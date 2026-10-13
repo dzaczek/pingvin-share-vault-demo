@@ -1,0 +1,51 @@
+# Settings of the public demo. With a config file in place the admin panel
+# cannot change any of them. run.sh adds the initUser block with the admin
+# password from the ADMIN_PASSWORD secret, so no password is kept here.
+general:
+  appName: Pingvin Share X Demo
+  # replaced by run.sh with APP_URL
+  appUrl: __APP_URL__
+  showHomePage: "true"
+  showAuthButtons: "true"
+security:
+  secureCookies: "true"
+  enableEmailVerification: "false"
+  # visitors use the demo account or share without one
+  allowRegistration: "false"
+  allowUnauthenticatedShares: "true"
+  allowAdminAccessAllShares: "false"
+share:
+  # 1 MiB per share, the demo is for trying things out, not for hosting
+  maxSize: "1048576"
+  maxExpiration: "0 days"
+  defaultExpiration: "1 days"
+  enableShareEmailRecipients: "false"
+  enableShareDownloadNotifications: "false"
+  enableUserRecipients: "false"
+  zipCompressionLevel: "1"
+  downloadAll: zip-on-the-fly
+  fileRetentionPeriod: "0 days"
+smtp:
+  enabled: "false"
+ldap:
+  enabled: "false"
+oauth:
+  allowRegistration: "false"
+  github-enabled: "false"
+  google-enabled: "false"
+  microsoft-enabled: "false"
+  discord-enabled: "false"
+  oidc-enabled: "false"
+s3:
+  enabled: "false"
+appearance:
+  customCss: |
+    body::before {
+      content: "Demo: everything is reset every 10 minutes. Sign in as demo / demo1234, or share without an account. Max 1 MB per share.";
+      display: block;
+      padding: 6px 12px;
+      text-align: center;
+      font-size: 13px;
+      background: #fff3bf;
+      color: #5c3c00;
+    }
