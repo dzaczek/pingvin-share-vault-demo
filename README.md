@@ -2,7 +2,7 @@
 
 A public demo of [Pingvin Share X](https://github.com/dzaczek/pingvin-share-x), a self hosted file sharing platform, running on Fly.io at https://pingvin-share-x-demo.fly.dev.
 
-Everything is reset every 10 minutes. Whatever you upload is gone after that.
+Everything is reset every 15 minutes. Whatever you upload is gone after that.
 
 ## Try it
 
@@ -22,7 +22,7 @@ The demo runs with `ANONYMIZE_IP=mask`, so only the first and the last part of e
 
 ## Virus scan
 
-A micro ClamAV runs inside the container. It only knows the EICAR test file (`demo/clamav/demo.ndb`), so it uses a few MB of memory and starts at once instead of loading the full signature database. It shows how a share with a malicious file is removed. It does not protect against real malware, which the 1 MB limit and the reset every 10 minutes keep out of reach anyway.
+A micro ClamAV runs inside the container. It only knows the EICAR test file (`demo/clamav/demo.ndb`), so it uses a few MB of memory and starts at once instead of loading the full signature database. It shows how a share with a malicious file is removed. It does not protect against real malware, which the 1 MB limit and the reset every 15 minutes keep out of reach anyway.
 
 ## Costs
 
@@ -53,7 +53,7 @@ Everyone who has the image has the same data. That is why the admin password and
 |---|---|---|---|
 | `ADMIN_PASSWORD` | `fly secrets set` | random | Password of the `admin` account. Without it the account is locked |
 | `APP_URL` | `fly.toml` | `https://pingvin-share-x-demo.fly.dev` | Public address of the demo |
-| `RESET_MINUTES` | `fly.toml` | `10` | Minutes between two resets |
+| `RESET_MINUTES` | `fly.toml` | `15` | Minutes between two resets |
 | `DEMO_SHARES` | build environment | `300` | Number of shares the seed creates |
 | `FLY_API_TOKEN` | GitHub secret | none | Deploy token for the app, from `fly tokens create deploy` |
 
