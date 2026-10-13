@@ -15,7 +15,9 @@ TEMPLATE=/opt/demo/template
 HEALTH=http://localhost:${BACKEND_PORT:-8080}/api/health
 RESET_MINUTES=${RESET_MINUTES:-10}
 
-export CONFIG_FILE=/opt/demo/state/config.yaml
+# no config file while the demo runs, so the settings page is the usual one
+# and only DEMO_MODE keeps it from saving. One is only used to build the data.
+export CONFIG_FILE=/opt/demo/state/none.yaml
 export TRUST_PROXY=${TRUST_PROXY:-true}
 export ANONYMIZE_IP=mask
 export CLAMAV_HOST=127.0.0.1
@@ -27,18 +29,14 @@ random() {
   node -e 'process.stdout.write(require("crypto").randomBytes(24).toString("base64url"))'
 }
 
-# initUser creates the admin when the data is built. A json string is valid
+# initUser creates the admin while the data is built. A json string is valid
 # yaml, so any password survives the trip.
-write_config() {
+write_init_user() {
   mkdir -p /opt/demo/state
   node -e '
-    const fs = require("fs");
-    let yaml = fs
-      .readFileSync("/opt/demo/config.yaml", "utf8")
-      .replace("__APP_URL__", JSON.stringify(process.env.APP_URL))
-      .replace("__DEMO_ADMIN_PASSWORD__", process.env.DEMO_ADMIN_PASSWORD ?? "");
-    if (process.env.ADMIN_PASSWORD)
-      yaml += [
+    require("fs").writeFileSync(
+      process.argv[1],
+      [
         "initUser:",
         "  enabled: true",
         "  username: admin",
@@ -46,8 +44,9 @@ write_config() {
         `  password: ${JSON.stringify(process.env.ADMIN_PASSWORD)}`,
         "  isAdmin: true",
         "",
-      ].join("\n");
-    fs.writeFileSync(process.argv[1], yaml, { mode: 0o600 });
+      ].join("\n"),
+      { mode: 0o600 },
+    );
   ' "$CONFIG_FILE"
 }
 
@@ -83,11 +82,13 @@ if [ "${1:-}" = "template" ]; then
   # the container starts
   ADMIN_PASSWORD=$(random)
   export ADMIN_PASSWORD
-  write_config
+  export CONFIG_FILE=/opt/demo/state/init.yaml
+  write_init_user
   rm -rf "$DATA" && mkdir -p "$DATA"
   (cd "$APP/backend" &&
     ./node_modules/.bin/prisma migrate deploy >/dev/null &&
     node dist/prisma/seed/config.seed.js >/dev/null)
+  node /opt/demo/db.mjs settings "$DATA/pingvin-share.db"
   # the seeded shares are scanned like any other
   clamav_up
   # the seed makes a few thousand calls from one address
@@ -101,29 +102,6 @@ if [ "${1:-}" = "template" ]; then
   exit 0
 fi
 
-# Sets one column of the demo database, a password is hashed first. Run from
-# the backend folder, where better-sqlite3 and argon2 are installed.
-db_set() {
-  (cd "$APP/backend" && node -e '
-    const Database = require("better-sqlite3");
-    const argon = require("argon2");
-    const [file, what, key, value] = process.argv.slice(1);
-    (async () => {
-      const db = new Database(file);
-      if (what === "password")
-        db.prepare("UPDATE User SET password = ? WHERE username = ?").run(
-          await argon.hash(value),
-          key,
-        );
-      else
-        db.prepare(
-          "UPDATE Config SET value = ? WHERE category = ? AND name = ?",
-        ).run(value, "internal", key);
-      db.close();
-    })();
-  ' "$@")
-}
-
 # Everyone who has the image has the same data, so the admin password and the
 # key that signs sessions are replaced before anything is served. Without an
 # ADMIN_PASSWORD the admin account gets a password nobody knows.
@@ -131,8 +109,8 @@ if [ -z "${ADMIN_PASSWORD:-}" ]; then
   echo "ADMIN_PASSWORD is not set, the admin account stays locked"
   ADMIN_PASSWORD=$(random)
 fi
-db_set "$TEMPLATE/pingvin-share.db" password admin "$ADMIN_PASSWORD"
-db_set "$TEMPLATE/pingvin-share.db" config jwtSecret "$(random)"
+node /opt/demo/db.mjs password "$TEMPLATE/pingvin-share.db" admin "$ADMIN_PASSWORD"
+node /opt/demo/db.mjs secret "$TEMPLATE/pingvin-share.db" jwtSecret "$(random)"
 unset ADMIN_PASSWORD
 
 # settings, the logo, passwords and accounts cannot be changed from here on
@@ -154,15 +132,15 @@ while true; do
   find "$DATA" -mindepth 1 -delete && cp -a "$TEMPLATE/." "$DATA/"
 
   # the public admin gets a new password at every reset, shown at the top of
-  # every page. The backend reads the banner from the config when it starts.
+  # every page. The backend reads the banner from the database when it starts.
   DEMO_ADMIN_PASSWORD=$(node -e '
     const c = require("crypto");
     const words = ["lorem", "ipsum", "dolor", "amet", "tempor", "magna", "velit"];
     process.stdout.write(`${words[c.randomInt(words.length)]}-${c.randomInt(1000, 10000)}`);
   ')
   export DEMO_ADMIN_PASSWORD
-  db_set "$DATA/pingvin-share.db" password demoadmin "$DEMO_ADMIN_PASSWORD"
-  write_config
+  node /opt/demo/db.mjs password "$DATA/pingvin-share.db" demoadmin "$DEMO_ADMIN_PASSWORD"
+  node /opt/demo/db.mjs settings "$DATA/pingvin-share.db"
 
   backend_up
   echo "Demo data restored, next reset in $RESET_MINUTES minutes"

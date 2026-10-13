@@ -38,7 +38,8 @@ The demo is set up so it cannot grow on its own:
 | File | What it does |
 |---|---|
 | `Dockerfile` | Adds the demo on top of the app image and builds the demo data into the image |
-| `demo/config.yaml` | Demo settings. With a config file in place, the admin panel cannot change them |
+| `demo/settings.yaml` | Demo settings, written into the database. The admin pages show them as usual, `DEMO_MODE` refuses to save a change |
+| `demo/db.mjs` | Writes the settings and the passwords into the demo database |
 | `demo/run.sh` | `run.sh template` builds the demo data. Without an argument it serves the demo and copies the data back every `RESET_MINUTES` |
 | `demo/seed.mjs` | Creates the demo account, a few made up users and the lorem ipsum shares through the API |
 | `fly.toml` | The Fly.io app: one small machine, auto stop and auto start |

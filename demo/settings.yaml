@@ -1,9 +1,9 @@
-# Settings of the public demo. With a config file in place the admin panel
-# cannot change any of them. run.sh adds the initUser block with the admin
-# password from the ADMIN_PASSWORD secret, so no password is kept here.
+# Settings of the public demo. db.mjs writes them into the database, so the
+# admin pages look like those of any instance, and DEMO_MODE refuses to save
+# a change. __APP_URL__ and __DEMO_ADMIN_PASSWORD__ are filled in at every
+# reset.
 general:
   appName: Pingvin Share X Demo
-  # replaced by run.sh with APP_URL
   appUrl: __APP_URL__
   showHomePage: "true"
   showAuthButtons: "true"
