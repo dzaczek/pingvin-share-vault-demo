@@ -2,7 +2,7 @@
 # second one by itself: auto start only wakes the machines that exist, and the
 # workflow deploys with --ha=false so there is only ever one.
 app = "pingvin-share-x-demo"
-primary_region = "waw"
+primary_region = "fra"
 
 # the demo needs about 220 MB, swap covers a busy minute
 swap_size_mb = 512
