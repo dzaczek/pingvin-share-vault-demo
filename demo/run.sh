@@ -34,7 +34,8 @@ write_config() {
     const fs = require("fs");
     let yaml = fs
       .readFileSync("/opt/demo/config.yaml", "utf8")
-      .replace("__APP_URL__", JSON.stringify(process.env.APP_URL));
+      .replace("__APP_URL__", JSON.stringify(process.env.APP_URL))
+      .replace("__DEMO_ADMIN_PASSWORD__", process.env.DEMO_ADMIN_PASSWORD ?? "");
     if (process.env.ADMIN_PASSWORD)
       yaml += [
         "initUser:",
@@ -83,6 +84,29 @@ if [ "${1:-}" = "template" ]; then
   exit 0
 fi
 
+# Sets one column of the demo database, a password is hashed first. Run from
+# the backend folder, where better-sqlite3 and argon2 are installed.
+db_set() {
+  (cd "$APP/backend" && node -e '
+    const Database = require("better-sqlite3");
+    const argon = require("argon2");
+    const [file, what, key, value] = process.argv.slice(1);
+    (async () => {
+      const db = new Database(file);
+      if (what === "password")
+        db.prepare("UPDATE User SET password = ? WHERE username = ?").run(
+          await argon.hash(value),
+          key,
+        );
+      else
+        db.prepare(
+          "UPDATE Config SET value = ? WHERE category = ? AND name = ?",
+        ).run(value, "internal", key);
+      db.close();
+    })();
+  ' "$@")
+}
+
 # Everyone who has the image has the same data, so the admin password and the
 # key that signs sessions are replaced before anything is served. Without an
 # ADMIN_PASSWORD the admin account gets a password nobody knows.
@@ -90,25 +114,12 @@ if [ -z "${ADMIN_PASSWORD:-}" ]; then
   echo "ADMIN_PASSWORD is not set, the admin account stays locked"
   ADMIN_PASSWORD=$(random)
 fi
-cd "$APP/backend"
-JWT_SECRET=$(random) ADMIN_PASSWORD=$ADMIN_PASSWORD node -e '
-  const Database = require("better-sqlite3");
-  const argon = require("argon2");
-  (async () => {
-    const db = new Database(process.argv[1]);
-    db.prepare("UPDATE User SET password = ? WHERE username = ?").run(
-      await argon.hash(process.env.ADMIN_PASSWORD),
-      "admin",
-    );
-    db.prepare(
-      "UPDATE Config SET value = ? WHERE category = ? AND name = ?",
-    ).run(process.env.JWT_SECRET, "internal", "jwtSecret");
-    db.close();
-  })();
-' "$TEMPLATE/pingvin-share.db"
-cd "$APP"
+db_set "$TEMPLATE/pingvin-share.db" password admin "$ADMIN_PASSWORD"
+db_set "$TEMPLATE/pingvin-share.db" config jwtSecret "$(random)"
 unset ADMIN_PASSWORD
-write_config
+
+# settings, the logo, passwords and accounts cannot be changed from here on
+export DEMO_MODE=true
 
 # the proxy and the frontend hold no state, they run for the whole container
 cp -rn /tmp/img/* "$APP/frontend/public/img" 2>/dev/null || true
@@ -122,6 +133,18 @@ fi
 while true; do
   # the folder itself belongs to root, only what is in it can go
   find "$DATA" -mindepth 1 -delete && cp -a "$TEMPLATE/." "$DATA/"
+
+  # the public admin gets a new password at every reset, shown at the top of
+  # every page. The backend reads the banner from the config when it starts.
+  DEMO_ADMIN_PASSWORD=$(node -e '
+    const c = require("crypto");
+    const words = ["lorem", "ipsum", "dolor", "amet", "tempor", "magna", "velit"];
+    process.stdout.write(`${words[c.randomInt(words.length)]}-${c.randomInt(1000, 10000)}`);
+  ')
+  export DEMO_ADMIN_PASSWORD
+  db_set "$DATA/pingvin-share.db" password demoadmin "$DEMO_ADMIN_PASSWORD"
+  write_config
+
   backend_up
   echo "Demo data restored, next reset in $RESET_MINUTES minutes"
   # a backend that crashes is put back right away instead of at the reset

@@ -152,9 +152,12 @@ const main = async () => {
       password: crypto.randomUUID(),
     })),
   ];
-  // a public admin, so visitors can look around the admin pages. Settings
-  // are locked by the config file and the reset undoes everything else.
-  const accounts = [...users, { username: "demoadmin", password: "demo1234" }];
+  // a public admin, so visitors can look around the admin pages. run.sh gives
+  // it a new password at every reset, DEMO_MODE keeps it from changing much.
+  const accounts = [
+    ...users,
+    { username: "demoadmin", password: crypto.randomUUID() },
+  ];
   for (const user of accounts)
     await admin.call("/users", {
       method: "POST",

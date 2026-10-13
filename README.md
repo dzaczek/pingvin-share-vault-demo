@@ -7,7 +7,9 @@ Everything is reset every 10 minutes. Whatever you upload is gone after that.
 ## Try it
 
 - Sign in as `demo` with the password `demo1234`, or share files without an account.
-- To look around the admin pages, sign in as `demoadmin` with the same password. Settings cannot be changed, they come from the config file, and the reset undoes anything else.
+- To look around the admin pages, sign in as `demoadmin`. Its password changes at every reset and is shown at the top of every page.
+- The demo runs with `DEMO_MODE=true`: settings, the logo, passwords and accounts cannot be changed. Creating users and two factor login still work.
+- Nothing is kept. The data is put back when the app starts and at every reset, two factor login included.
 - A share can hold at most 1 MB.
 - 300 shares with lorem ipsum files are already there. A few of them are protected with the password `demo`.
 - The `admin` account is private.
