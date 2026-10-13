@@ -3,7 +3,7 @@
 # a change. __APP_URL__ and __DEMO_ADMIN_PASSWORD__ are filled in at every
 # reset.
 general:
-  appName: Pingvin Share X Demo
+  appName: Pingvin Share Vault Demo
   appUrl: __APP_URL__
   showHomePage: "true"
   showAuthButtons: "true"

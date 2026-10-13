@@ -1,6 +1,6 @@
-# Public demo of Pingvin Share X on Fly.io. The base image is the app itself,
-# built from the demo branch of dzaczek/pingvin-share-x.
-ARG BASE_IMAGE=ghcr.io/dzaczek/pingvin-share-x-demo-base:latest
+# Public demo of Pingvin Share Vault on Fly.io. The base image is the app itself,
+# built from the demo branch of dzaczek/pingvin-share-vault.
+ARG BASE_IMAGE=ghcr.io/dzaczek/pingvin-share-vault-demo-base:latest
 FROM ${BASE_IMAGE}
 
 # a micro ClamAV that only knows the EICAR test file, see demo/clamav

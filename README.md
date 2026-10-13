@@ -1,6 +1,6 @@
-# Pingvin Share X demo
+# Pingvin Share Vault demo
 
-A public demo of [Pingvin Share X](https://github.com/dzaczek/pingvin-share-x), a self hosted file sharing platform, running on Fly.io at https://pingvin-share-x-demo.fly.dev.
+A public demo of [Pingvin Share Vault](https://github.com/dzaczek/pingvin-share-vault), a self hosted file sharing platform, running on Fly.io at https://pingvin-share-vault-demo.fly.dev.
 
 Everything is reset every 15 minutes. Whatever you upload is gone after that.
 
@@ -52,7 +52,7 @@ Everyone who has the image has the same data. That is why the admin password and
 | Name | Where | Default | Meaning |
 |---|---|---|---|
 | `ADMIN_PASSWORD` | `fly secrets set` | random | Password of the `admin` account. Without it the account is locked |
-| `APP_URL` | `fly.toml` | `https://pingvin-share-x-demo.fly.dev` | Public address of the demo |
+| `APP_URL` | `fly.toml` | `https://pingvin-share-vault-demo.fly.dev` | Public address of the demo |
 | `RESET_MINUTES` | `fly.toml` | `15` | Minutes between two resets |
 | `DEMO_SHARES` | build environment | `300` | Number of shares the seed creates |
 | `FLY_API_TOKEN` | GitHub secret | none | Deploy token for the app, from `fly tokens create deploy` |

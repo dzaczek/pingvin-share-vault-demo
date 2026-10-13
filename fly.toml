@@ -1,14 +1,14 @@
 # One small machine that sleeps while nobody uses the demo. Fly never adds a
 # second one by itself: auto start only wakes the machines that exist, and the
 # workflow deploys with --ha=false so there is only ever one.
-app = "pingvin-share-x-demo"
+app = "pingvin-share-vault-demo"
 primary_region = "fra"
 
 # the demo needs about 220 MB, swap covers a busy minute
 swap_size_mb = 512
 
 [env]
-  APP_URL = "https://pingvin-share-x-demo.fly.dev"
+  APP_URL = "https://pingvin-share-vault-demo.fly.dev"
   RESET_MINUTES = "15"
   TRUST_PROXY = "true"
 
