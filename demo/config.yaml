@@ -41,7 +41,7 @@ s3:
 appearance:
   customCss: |
     body::before {
-      content: "Demo: everything is reset every 10 minutes. Sign in as demo / demo1234, or share without an account. Max 1 MB per share.";
+      content: "Demo: everything is reset every 10 minutes. Sign in as demo or demoadmin, password demo1234, or share without an account. Max 1 MB per share.";
       display: block;
       padding: 6px 12px;
       text-align: center;

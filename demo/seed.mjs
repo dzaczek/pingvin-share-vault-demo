@@ -152,13 +152,16 @@ const main = async () => {
       password: crypto.randomUUID(),
     })),
   ];
-  for (const user of users)
+  // a public admin, so visitors can look around the admin pages. Settings
+  // are locked by the config file and the reset undoes everything else.
+  const accounts = [...users, { username: "demoadmin", password: "demo1234" }];
+  for (const user of accounts)
     await admin.call("/users", {
       method: "POST",
       json: {
         ...user,
         email: `${user.username}@example.com`,
-        isAdmin: false,
+        isAdmin: user.username === "demoadmin",
         isActivated: true,
       },
     });
@@ -176,7 +179,7 @@ const main = async () => {
     if (rand() < 0.3) await visit(share);
     created++;
   }
-  console.log(`Seeded ${users.length} users and ${created} shares`);
+  console.log(`Seeded ${accounts.length} users and ${created} shares`);
 };
 
 main().catch((e) => {

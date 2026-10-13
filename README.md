@@ -7,9 +7,10 @@ Everything is reset every 10 minutes. Whatever you upload is gone after that.
 ## Try it
 
 - Sign in as `demo` with the password `demo1234`, or share files without an account.
+- To look around the admin pages, sign in as `demoadmin` with the same password. Settings cannot be changed, they come from the config file, and the reset undoes anything else.
 - A share can hold at most 1 MB.
 - 300 shares with lorem ipsum files are already there. A few of them are protected with the password `demo`.
-- The admin account is not public.
+- The `admin` account is private.
 
 ## Privacy
 
