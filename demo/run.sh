@@ -17,7 +17,8 @@ RESET_MINUTES=${RESET_MINUTES:-10}
 
 export CONFIG_FILE=/opt/demo/state/config.yaml
 export TRUST_PROXY=${TRUST_PROXY:-true}
-export ANONYMIZE_IP=true
+export ANONYMIZE_IP=mask
+export CLAMAV_HOST=127.0.0.1
 export APP_URL=${APP_URL:-http://localhost:3000}
 
 trap 'kill 0' INT TERM
@@ -59,6 +60,19 @@ backend_up() {
   done
 }
 
+# the backend only looks for ClamAV once a minute, so it has to be up first.
+# Without it shares are simply not scanned.
+clamav_up() {
+  clamd -c /opt/demo/clamav/clamd.conf &
+  for _ in $(seq 50); do
+    node -e 'require("net").connect(3310, "127.0.0.1")
+      .on("connect", () => process.exit(0))
+      .on("error", () => process.exit(1))' && return 0
+    sleep 0.2
+  done
+  echo "ClamAV did not start, shares are not scanned"
+}
+
 backend_down() {
   kill "$BACKEND" 2>/dev/null || true
   wait "$BACKEND" 2>/dev/null || true
@@ -74,11 +88,14 @@ if [ "${1:-}" = "template" ]; then
   (cd "$APP/backend" &&
     ./node_modules/.bin/prisma migrate deploy >/dev/null &&
     node dist/prisma/seed/config.seed.js >/dev/null)
+  # the seeded shares are scanned like any other
+  clamav_up
   # the seed makes a few thousand calls from one address
   export DISABLE_RATE_LIMIT=true
   backend_up
   API_URL="${HEALTH%/health}" node /opt/demo/seed.mjs
   backend_down
+  kill %1 2>/dev/null || pkill clamd || true
   rm -rf "$TEMPLATE" && mv "$DATA" "$TEMPLATE"
   rm -f "$CONFIG_FILE"
   exit 0
@@ -121,7 +138,9 @@ unset ADMIN_PASSWORD
 # settings, the logo, passwords and accounts cannot be changed from here on
 export DEMO_MODE=true
 
-# the proxy and the frontend hold no state, they run for the whole container
+# the proxy, the frontend and the micro ClamAV hold no state, they run for the
+# whole container
+clamav_up
 cp -rn /tmp/img/* "$APP/frontend/public/img" 2>/dev/null || true
 if [ "$TRUST_PROXY" = "true" ]; then
   caddy start --adapter caddyfile --config "$APP/reverse-proxy/Caddyfile.trust-proxy"

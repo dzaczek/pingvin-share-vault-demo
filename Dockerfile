@@ -3,6 +3,9 @@
 ARG BASE_IMAGE=ghcr.io/dzaczek/pingvin-share-x-demo-base:latest
 FROM ${BASE_IMAGE}
 
+# a micro ClamAV that only knows the EICAR test file, see demo/clamav
+RUN apk add --no-cache clamav-daemon
+
 COPY demo /opt/demo
 
 # the demo data is built here, once, so an idle machine that was stopped is

@@ -41,7 +41,7 @@ s3:
 appearance:
   customCss: |
     body::before {
-      content: "Demo: everything is reset every 10 minutes. Admin: demoadmin / __DEMO_ADMIN_PASSWORD__ (new at every reset). User: demo / demo1234. Or share without an account. Max 1 MB per share.";
+      content: "Demo: everything is reset every 10 minutes. Admin: demoadmin / __DEMO_ADMIN_PASSWORD__ (new at every reset). User: demo / demo1234. Or share without an account. Max 1 MB per share. Upload the EICAR test file to see the virus scan.";
       display: block;
       padding: 6px 12px;
       text-align: center;

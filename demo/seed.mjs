@@ -71,13 +71,14 @@ const FILES = [
 
 // one cookie jar per actor, anonymous ones included: the api keeps who
 // created a share in cookies
-const actor = () => {
+const actor = (ip) => {
   const jar = new Map();
   const call = async (path, { method = "GET", json, body, type } = {}) => {
     const res = await fetch(`${API}${path}`, {
       method,
       headers: {
         cookie: [...jar].map(([k, v]) => `${k}=${v}`).join("; "),
+        ...(ip ? { "x-forwarded-for": ip } : {}),
         ...(json ? { "content-type": "application/json" } : {}),
         ...(type ? { "content-type": type } : {}),
       },
@@ -96,7 +97,7 @@ const actor = () => {
 };
 
 const signedIn = async (username, password) => {
-  const a = actor();
+  const a = actor(visitorIp());
   await a.call("/auth/signIn", { method: "POST", json: { username, password } });
   return a;
 };
@@ -131,9 +132,13 @@ const createShare = async (a, n) => {
   return { id, password: security.password };
 };
 
+// addresses reserved for documentation, so no real visitor is made up
+const visitorIp = () =>
+  `${pick(["192.0.2", "198.51.100", "203.0.113"])}.${between(1, 254)}`;
+
 // a few visits, so the access log of a share is not empty
 const visit = async ({ id, password }) => {
-  const a = actor();
+  const a = actor(visitorIp());
   await a.call(`/shares/${id}/token`, {
     method: "POST",
     json: password ? { password } : {},
@@ -177,7 +182,7 @@ const main = async () => {
   let created = 0;
   for (let n = 1; n <= SHARES; n++) {
     // a fifth belongs to the demo account, some have no owner at all
-    const owner = n % 5 === 0 ? demo : n % 7 === 0 ? actor() : pick(others);
+    const owner = n % 5 === 0 ? demo : n % 7 === 0 ? actor(visitorIp()) : pick(others);
     const share = await createShare(owner, n);
     if (rand() < 0.3) await visit(share);
     created++;

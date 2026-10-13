@@ -14,9 +14,15 @@ Everything is reset every 10 minutes. Whatever you upload is gone after that.
 - 300 shares with lorem ipsum files are already there. A few of them are protected with the password `demo`.
 - The `admin` account is private.
 
+- Upload the [EICAR test file](https://www.eicar.org/download-anti-malware-testfile/) to see the virus scan remove a share.
+
 ## Privacy
 
-The demo runs with `ANONYMIZE_IP=true`, so only a shortened address of every visitor is stored: the last part of an IPv4 address and everything after the first 48 bits of an IPv6 address are dropped. All data, logs included, is deleted at every reset.
+The demo runs with `ANONYMIZE_IP=mask`, so only the first and the last part of every address is stored, `203.*.*.57` for `203.0.113.57`. The share history and the audit log never see more. All data, logs included, is deleted at every reset.
+
+## Virus scan
+
+A micro ClamAV runs inside the container. It only knows the EICAR test file (`demo/clamav/demo.ndb`), so it uses a few MB of memory and starts at once instead of loading the full signature database. It shows how a share with a malicious file is removed. It does not protect against real malware, which the 1 MB limit and the reset every 10 minutes keep out of reach anyway.
 
 ## Costs
 
