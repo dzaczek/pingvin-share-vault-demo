@@ -42,6 +42,9 @@ appearance:
   # the demo shows off the glass style, every visitor can switch back on the
   # account page
   uiStyle: glass
+  # the built in Alps wallpaper; uploading your own is closed in the demo
+  glassBackground: image
+  glassBackgroundUrl: /wallpapers/alps.svg
   customCss: |
     body::before {
       content: "Demo: everything is reset every 15 minutes. Admin: demoadmin / __DEMO_ADMIN_PASSWORD__ (new at every reset). User: demo / demo1234. Or share without an account. Max 1 MB per share. Upload the EICAR test file to see the virus scan.";
