@@ -9,7 +9,7 @@ swap_size_mb = 512
 
 [env]
   APP_URL = "https://pingvin-share-vault-demo.fly.dev"
-  RESET_MINUTES = "15"
+  RESET_MINUTES = "60"
   TRUST_PROXY = "true"
 
 [http_service]

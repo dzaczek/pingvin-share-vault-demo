@@ -13,7 +13,7 @@ APP=/opt/app
 DATA=$APP/backend/data
 TEMPLATE=/opt/demo/template
 HEALTH=http://localhost:${BACKEND_PORT:-8080}/api/health
-RESET_MINUTES=${RESET_MINUTES:-15}
+RESET_MINUTES=${RESET_MINUTES:-60}
 
 # no config file while the demo runs, so the settings page is the usual one
 # and only DEMO_MODE keeps it from saving. One is only used to build the data.
